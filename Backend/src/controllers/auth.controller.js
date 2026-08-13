@@ -3,12 +3,16 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const tokenBlacklistModel = require("../models/blacklist.model")
 
+
 /**
  * @name registerUserController
- * @description register a new user, expects username, email and password in the request body
+ * @description register a new user
  * @access Public
  */
 async function registerUserController(req, res) {
+
+    console.log("🔥 REGISTER API HIT")
+    console.log("📦 Register body:", req.body)
 
     const { username, email, password } = req.body
 
@@ -19,10 +23,12 @@ async function registerUserController(req, res) {
     }
 
     const isUserAlreadyExists = await userModel.findOne({
-        $or: [ { username }, { email } ]
+        $or: [{ username }, { email }]
     })
 
     if (isUserAlreadyExists) {
+        console.log("❌ User already exists")
+
         return res.status(400).json({
             message: "Account already exists with this email address or username"
         })
@@ -36,6 +42,8 @@ async function registerUserController(req, res) {
         password: hash
     })
 
+    console.log("✅ USER CREATED:", user.email)
+
     const token = jwt.sign(
         { id: user._id, username: user.username },
         process.env.JWT_SECRET,
@@ -43,7 +51,6 @@ async function registerUserController(req, res) {
     )
 
     res.cookie("token", token)
-
 
     res.status(201).json({
         message: "User registered successfully",
@@ -53,28 +60,39 @@ async function registerUserController(req, res) {
             email: user.email
         }
     })
-
 }
 
 
 /**
  * @name loginUserController
- * @description login a user, expects email and password in the request body
+ * @description login a user
  * @access Public
  */
 async function loginUserController(req, res) {
+
+    console.log("🔥 LOGIN API HIT")
+    console.log("📦 Login body:", req.body)
 
     const { email, password } = req.body
 
     const user = await userModel.findOne({ email })
 
+    console.log("👤 User:", user ? "FOUND" : "NOT FOUND")
+
     if (!user) {
+        console.log("❌ User not found")
+
         return res.status(400).json({
             message: "Invalid email or password"
         })
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    console.log(
+        "🔐 Password:",
+        isPasswordValid ? "VALID" : "INVALID"
+    )
 
     if (!isPasswordValid) {
         return res.status(400).json({
@@ -88,7 +106,10 @@ async function loginUserController(req, res) {
         { expiresIn: "1d" }
     )
 
+    console.log("🎟️ Token created")
+
     res.cookie("token", token)
+
     res.status(200).json({
         message: "User loggedIn successfully.",
         user: {
@@ -97,15 +118,18 @@ async function loginUserController(req, res) {
             email: user.email
         }
     })
+
+    console.log("✅ LOGIN SUCCESS")
 }
 
 
 /**
  * @name logoutUserController
- * @description clear token from user cookie and add the token in blacklist
- * @access public
+ * @description logout user
+ * @access Public
  */
 async function logoutUserController(req, res) {
+
     const token = req.cookies.token
 
     if (token) {
@@ -119,16 +143,15 @@ async function logoutUserController(req, res) {
     })
 }
 
+
 /**
  * @name getMeController
- * @description get the current logged in user details.
- * @access private
+ * @description get current logged in user
+ * @access Private
  */
 async function getMeController(req, res) {
 
     const user = await userModel.findById(req.user.id)
-
-
 
     res.status(200).json({
         message: "User details fetched successfully",
@@ -138,9 +161,7 @@ async function getMeController(req, res) {
             email: user.email
         }
     })
-
 }
-
 
 
 module.exports = {
