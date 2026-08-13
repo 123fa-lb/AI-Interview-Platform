@@ -3,11 +3,14 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const tokenBlacklistModel = require("../models/blacklist.model")
 
+const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none"
+}
 
 /**
- * @name registerUserController
- * @description register a new user
- * @access Public
+ * Register user
  */
 async function registerUserController(req, res) {
 
@@ -45,14 +48,19 @@ async function registerUserController(req, res) {
     console.log("✅ USER CREATED:", user.email)
 
     const token = jwt.sign(
-        { id: user._id, username: user.username },
+        {
+            id: user._id,
+            username: user.username
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "1d" }
+        {
+            expiresIn: "1d"
+        }
     )
 
-    res.cookie("token", token)
+    res.cookie("token", token, cookieOptions)
 
-    res.status(201).json({
+    return res.status(201).json({
         message: "User registered successfully",
         user: {
             id: user._id,
@@ -64,9 +72,7 @@ async function registerUserController(req, res) {
 
 
 /**
- * @name loginUserController
- * @description login a user
- * @access Public
+ * Login user
  */
 async function loginUserController(req, res) {
 
@@ -87,7 +93,10 @@ async function loginUserController(req, res) {
         })
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password)
+    const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password
+    )
 
     console.log(
         "🔐 Password:",
@@ -101,16 +110,23 @@ async function loginUserController(req, res) {
     }
 
     const token = jwt.sign(
-        { id: user._id, username: user.username },
+        {
+            id: user._id,
+            username: user.username
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "1d" }
+        {
+            expiresIn: "1d"
+        }
     )
 
     console.log("🎟️ Token created")
 
-    res.cookie("token", token)
+    res.cookie("token", token, cookieOptions)
 
-    res.status(200).json({
+    console.log("🍪 Cookie set")
+
+    return res.status(200).json({
         message: "User loggedIn successfully.",
         user: {
             id: user._id,
@@ -118,42 +134,38 @@ async function loginUserController(req, res) {
             email: user.email
         }
     })
-
-    console.log("✅ LOGIN SUCCESS")
 }
 
 
 /**
- * @name logoutUserController
- * @description logout user
- * @access Public
+ * Logout user
  */
 async function logoutUserController(req, res) {
 
     const token = req.cookies.token
 
     if (token) {
-        await tokenBlacklistModel.create({ token })
+        await tokenBlacklistModel.create({
+            token
+        })
     }
 
-    res.clearCookie("token")
+    res.clearCookie("token", cookieOptions)
 
-    res.status(200).json({
+    return res.status(200).json({
         message: "User logged out successfully"
     })
 }
 
 
 /**
- * @name getMeController
- * @description get current logged in user
- * @access Private
+ * Get current logged in user
  */
 async function getMeController(req, res) {
 
     const user = await userModel.findById(req.user.id)
 
-    res.status(200).json({
+    return res.status(200).json({
         message: "User details fetched successfully",
         user: {
             id: user._id,
