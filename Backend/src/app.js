@@ -12,7 +12,9 @@ app.use(cors({
     origin: [
         "http://localhost:5173",
         "http://localhost:5174",
-        "https://ai-interview-platform-nine-pied.vercel.app"
+        "http://localhost:5175",
+        "https://ai-interview-platform-nine-pied.vercel.app",
+        "https://ai-interview-platform-543m8pqkj-ai-interview-platform1.vercel.app"
     ],
     credentials: true
 }))
