@@ -1,66 +1,37 @@
 import axios from "axios"
 
-
 const api = axios.create({
-    baseURL: "https://ai-interview-platform-9828.onrender.com",
+    baseURL: "/api",
     withCredentials: true
 })
 
 export async function register({ username, email, password }) {
+    const response = await api.post("/auth/register", {
+        username,
+        email,
+        password
+    })
 
-    try {
-        const response = await api.post('/api/auth/register', {
-            username, email, password
-        })
-
-        return response.data
-
-    } catch (err) {
-
-        console.log(err)
-
-    }
-
+    return response.data
 }
 
 export async function login({ email, password }) {
+    const response = await api.post("/auth/login", {
+        email,
+        password
+    })
 
-    try {
-
-        const response = await api.post("/api/auth/login", {
-            email, password
-        })
-
-        return response.data
-
-    } catch (err) {
-        console.log(err)
-    }
-
+    return response.data
 }
 
 export async function logout() {
-    try {
+    const response = await api.get("/auth/logout")
 
-        const response = await api.get("/api/auth/logout")
-
-        return response.data
-
-    } catch (err) {
-
-    }
+    return response.data
 }
 
 export async function getMe() {
+    const response = await api.get("/auth/get-me")
 
-    try {
-
-        const response = await api.get("/api/auth/get-me")
-
-        return response.data
-
-    } catch (err) {
-        console.log(err)
-    }
-
+    return response.data
 }

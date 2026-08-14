@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://ai-interview-platform-9828.onrender.com/api/:path*"
+    }
+  ]
+}
+File Name to write: vercel.json
+
